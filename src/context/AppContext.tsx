@@ -54,7 +54,12 @@ const STORAGE_KEY = 'learningRival_userProfile';
 const getInitialProfile = (): UserProfile => {
   const storedProfile = localStorage.getItem(STORAGE_KEY);
   if (storedProfile) {
-    return JSON.parse(storedProfile);
+    const parsedProfile = JSON.parse(storedProfile);
+    // Ensure xp is always a valid number
+    if (typeof parsedProfile.xp !== 'number' || isNaN(parsedProfile.xp)) {
+      parsedProfile.xp = 650;
+    }
+    return parsedProfile;
   }
   return {
     name: 'Learning Enthusiast',
