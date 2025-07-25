@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMultiRival } from '../context/MultiRivalContext';
 import { useAppContext } from '../context/AppContext';
+import { calculateXPGain, calculateLevel } from '../utils/xpSystem';
 import { ArrowLeft, Trophy, Medal, Crown, RefreshCw, Users } from 'lucide-react';
 
 const MultiResultsPage: React.FC = () => {
@@ -23,12 +24,25 @@ const MultiResultsPage: React.FC = () => {
     const playerWon = gameResults.playerRank === 1;
     const topThree = gameResults.playerRank <= 3;
     
+    // Calculate XP gains for multi-rival competition
+    const gains = calculateXPGain(
+      gameResults.playerStats.score,
+      gameResults.playerStats.completionTime,
+      selectedRivals.length * 60, // Approximate target time
+      playerWon,
+      selectedRivals.length
+    );
+    
+    const totalXPGain = gains.reduce((sum, gain) => sum + gain.amount, 0);
+    
     setUserProfile(prev => ({
       ...prev,
       competitions: prev.competitions + 1,
       victories: playerWon ? prev.victories + 1 : prev.victories,
       accuracy: Math.round((prev.accuracy + gameResults.playerStats.accuracy) / 2),
       streak: topThree ? prev.streak + 1 : 0,
+      xp: prev.xp + totalXPGain,
+      level: calculateLevel(prev.xp + totalXPGain)
     }));
   }, [gameResults, setUserProfile, navigate]);
 

@@ -7,6 +7,7 @@ import ResultsPage from './pages/ResultsPage';
 import MultiRivalPage from './pages/MultiRivalPage';
 import MultiCompetitionPage from './pages/MultiCompetitionPage';
 import MultiResultsPage from './pages/MultiResultsPage';
+import RankingPage from './pages/RankingPage';
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,10 @@ export const router = createBrowserRouter([
       {
         path: 'multi-results',
         element: <MultiResultsPage />,
+      },
+      {
+        path: 'ranking',
+        element: <RankingPage />,
       },
     ],
   },

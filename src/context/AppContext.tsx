@@ -8,6 +8,7 @@ interface UserProfile {
   victories: number;
   accuracy: number;
   streak: number;
+  xp: number;
 }
 
 interface AppContextType {
@@ -61,7 +62,8 @@ const getInitialProfile = (): UserProfile => {
     competitions: 12,
     victories: 8,
     accuracy: 85,
-    streak: 5
+    streak: 5,
+    xp: 650
   };
 };
 

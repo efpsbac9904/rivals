@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { getProgressToNextLevel } from '../utils/xpSystem';
 import { User, Medal, Trophy, Award, Edit2, Check, X } from 'lucide-react';
 
 const UserProfile: React.FC = () => {
@@ -24,7 +25,7 @@ const UserProfile: React.FC = () => {
     let parsedValue: string | number = value;
     
     // Handle numeric fields
-    if (['competitions', 'victories', 'accuracy', 'streak'].includes(name)) {
+    if (['competitions', 'victories', 'accuracy', 'streak', 'xp'].includes(name)) {
       parsedValue = Math.max(0, parseInt(value) || 0);
       
       // Additional constraints
@@ -40,6 +41,8 @@ const UserProfile: React.FC = () => {
       [name]: parsedValue
     }));
   };
+
+  const levelProgress = getProgressToNextLevel(userProfile.xp);
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -65,6 +68,7 @@ const UserProfile: React.FC = () => {
               <div>
                 <h2 className="text-xl font-bold text-white">{userProfile.name}</h2>
                 <p className="text-blue-100">Level {userProfile.level}</p>
+                <p className="text-blue-200 text-sm">{userProfile.xp.toLocaleString()} XP</p>
               </div>
             )}
           </div>
@@ -100,6 +104,27 @@ const UserProfile: React.FC = () => {
       </div>
       
       <div className="p-6">
+        {/* Level Progress Bar */}
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">
+              Level {userProfile.level} Progress
+            </span>
+            <span className="text-sm text-gray-500">
+              {levelProgress.current} / {levelProgress.needed} XP
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-gradient-to-r from-blue-400 to-purple-500 h-2 rounded-full transition-all duration-500"
+              style={{ width: `${levelProgress.percentage}%` }}
+            ></div>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">
+            次のレベルまで {levelProgress.needed - levelProgress.current} XP
+          </p>
+        </div>
+        
         <div className="mb-6">
           <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
             Your Stats
@@ -163,6 +188,30 @@ const UserProfile: React.FC = () => {
                   <div className="text-xs text-gray-500">Accuracy</div>
                 </div>
               </>
+            )}
+          </div>
+          
+          {/* XP Display */}
+          <div className="mt-4">
+            {isEditing ? (
+              <div className="bg-purple-50 rounded-lg p-3 text-center">
+                <Medal className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                <input
+                  type="number"
+                  name="xp"
+                  value={editedProfile.xp}
+                  onChange={handleChange}
+                  className="w-full text-center border border-gray-300 rounded px-2 py-1"
+                  min="0"
+                />
+                <div className="text-xs text-gray-500">Total XP</div>
+              </div>
+            ) : (
+              <div className="bg-purple-50 rounded-lg p-3 text-center">
+                <Medal className="h-5 w-5 text-purple-500 mx-auto mb-1" />
+                <div className="font-bold text-gray-800">{userProfile.xp.toLocaleString()}</div>
+                <div className="text-xs text-gray-500">Total XP</div>
+              </div>
             )}
           </div>
         </div>

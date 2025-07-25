@@ -15,6 +15,9 @@ const Layout: React.FC = () => {
             <a href="/" className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">
               ホーム
             </a>
+            <a href="/ranking" className="text-gray-600 hover:text-blue-500 px-3 py-2 rounded-md text-sm font-medium">
+              ランキング
+            </a>
           </nav>
         </div>
       </header>

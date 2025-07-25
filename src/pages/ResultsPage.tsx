@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { calculateXPGain, calculateLevel } from '../utils/xpSystem';
+import { XPGain } from '../types/ranking';
+import XPGainDisplay from '../components/XPGainDisplay';
 import { ArrowLeft, Trophy, Medal, Clock, BarChart3, RefreshCw, Settings } from 'lucide-react';
 
 const ResultsPage: React.FC = () => {
@@ -25,6 +28,8 @@ const ResultsPage: React.FC = () => {
   const [showRematchSettings, setShowRematchSettings] = useState(false);
   const [newProblemCount, setNewProblemCount] = useState(problemCount);
   const [newTimePerProblem, setNewTimePerProblem] = useState(timePerProblem);
+  const [xpGains, setXpGains] = useState<XPGain[]>([]);
+  const [showXPGains, setShowXPGains] = useState(false);
 
   useEffect(() => {
     if (!selectedCharacter || (userScore === 0 && rivalScore === 0)) {
@@ -36,6 +41,18 @@ const ResultsPage: React.FC = () => {
     if (userScore > 0 || rivalScore > 0) {
       const userWon = userScore >= rivalScore;
       const accuracy = Math.round((userScore / 100) * 100);
+      
+      // Calculate XP gains
+      const gains = calculateXPGain(
+        userScore,
+        elapsedTime,
+        problemCount * timePerProblem,
+        userWon
+      );
+      setXpGains(gains);
+      setShowXPGains(true);
+      
+      const totalXPGain = gains.reduce((sum, gain) => sum + gain.amount, 0);
 
       setUserProfile(prev => ({
         ...prev,
@@ -43,6 +60,8 @@ const ResultsPage: React.FC = () => {
         victories: userWon ? prev.victories + 1 : prev.victories,
         accuracy: Math.round((prev.accuracy + accuracy) / 2),
         streak: userWon ? prev.streak + 1 : 0,
+        xp: prev.xp + totalXPGain,
+        level: calculateLevel(prev.xp + totalXPGain)
       }));
     }
   }, [userScore, rivalScore, setUserProfile]);
@@ -100,6 +119,15 @@ const ResultsPage: React.FC = () => {
         </div>
 
         <div className="p-6">
+          {showXPGains && (
+            <div className="mb-8">
+              <XPGainDisplay 
+                gains={xpGains}
+                onComplete={() => setShowXPGains(false)}
+              />
+            </div>
+          )}
+          
           <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">Competition Results</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
