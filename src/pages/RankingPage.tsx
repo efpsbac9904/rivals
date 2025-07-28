@@ -5,7 +5,7 @@ import { UserRanking, RankingData } from '../types/ranking';
 import { generateMockRankings } from '../utils/mockRankings';
 import { calculateLevel, getProgressToNextLevel } from '../utils/xpSystem';
 import RankingDisplay from '../components/RankingDisplay';
-import { ArrowLeft, TrendingUp, Users, Target } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Users, Target, Trophy } from 'lucide-react';
 
 const RankingPage: React.FC = () => {
   const navigate = useNavigate();
