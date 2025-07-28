@@ -15,14 +15,13 @@ const RankingPage: React.FC = () => {
 
   useEffect(() => {
     // Generate mock rankings based on user's current XP
-    const userXP = userProfile.competitions * 50 + userProfile.victories * 25 + userProfile.accuracy * 2;
-    const allRankings = generateMockRankings(userXP, userProfile.name);
+    const allRankings = generateMockRankings(userProfile.xp, userProfile.name);
     
     const currentUser = allRankings.find(r => r.isCurrentUser)!;
     const userRank = currentUser.rank;
     
-    // Top 20 rankings
-    const topRankings = allRankings.slice(0, 20);
+    // Top 50 rankings
+    const topRankings = allRankings.slice(0, 50);
     
     // Nearby rankings (±5 positions around user)
     const nearbyStart = Math.max(0, userRank - 6);
@@ -131,8 +130,8 @@ const RankingPage: React.FC = () => {
       {activeTab === 'global' ? (
         <RankingDisplay
           rankings={rankingData.topRankings}
-          title="トップランキング"
-          showTop={20}
+          title="グローバルランキング (Top 50)"
+          showTop={50}
         />
       ) : (
         <RankingDisplay
