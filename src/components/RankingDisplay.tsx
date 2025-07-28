@@ -1,5 +1,6 @@
 import React from 'react';
 import { UserRanking } from '../types/ranking';
+import { getUserLeague } from '../utils/leagueSystem';
 import { Trophy, Medal, Award, Crown, TrendingUp } from 'lucide-react';
 
 interface RankingDisplayProps {
@@ -65,9 +66,15 @@ const RankingDisplay: React.FC<RankingDisplayProps> = ({
             
             <div className="flex-1 flex items-center">
               <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-sm">
-                  {user.name.charAt(0)}
-                </span>
+                {user.isCurrentUser ? (
+                  <span className="text-white font-bold text-sm">
+                    {user.name.charAt(0)}
+                  </span>
+                ) : (
+                  <span className="text-lg">
+                    {getUserLeague(user.xp).icon}
+                  </span>
+                )}
               </div>
               
               <div className="flex-1">
@@ -76,6 +83,7 @@ const RankingDisplay: React.FC<RankingDisplayProps> = ({
                 </h3>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>Level {user.level}</span>
+                  <span>{user.league}</span>
                   <span>{user.xp.toLocaleString()} XP</span>
                 </div>
               </div>

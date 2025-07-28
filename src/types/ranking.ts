@@ -4,6 +4,8 @@ export interface UserRanking {
   xp: number;
   level: number;
   rank: number;
+  league: string;
+  leagueRank: number;
   avatar?: string;
   isCurrentUser?: boolean;
 }
@@ -19,4 +21,6 @@ export interface RankingData {
   topRankings: UserRanking[];
   nearbyRankings: UserRanking[];
   totalUsers: number;
+  currentLeague: string;
+  leagueRankings: UserRanking[];
 }
