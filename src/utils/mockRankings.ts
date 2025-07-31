@@ -62,9 +62,9 @@ export const generateMockRankings = (userXP: number, userName: string): UserRank
     rankings.push(generateMockUser(`bot-${index}`, xp));
   });
   
-  // Add some bots around user's XP for nearby rankings
+  // Add some bots around user's XP for nearby rankings, but only below user's XP
   for (let i = 0; i < 10; i++) {
-    const variation = (i - 5) * 50; // -250 to +200 XP around user
+    const variation = -50 - (i * 30); // Only generate bots with lower XP than user
     const botXP = Math.max(0, userXP + variation);
     rankings.push(generateMockUser(`nearby-bot-${i}`, botXP));
   }
