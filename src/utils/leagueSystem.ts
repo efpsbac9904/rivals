@@ -83,17 +83,9 @@ export const leagues: League[] = [
   {
     name: 'イモータル',
     minXP: 40000,
-    maxXP: 100000,
+    maxXP: Infinity,
     color: '#8A2BE2',
     icon: '🔥',
-    description: '不滅の学習精神を持つ最高位のリーグ'
-  },
-   {
-    name: 'チーター',
-    minXP: 100001,
-    maxXP: Infinity,
-    color: '#000000',
-    icon: '🐆',
     description: '不滅の学習精神を持つ最高位のリーグ'
   }
 ];
