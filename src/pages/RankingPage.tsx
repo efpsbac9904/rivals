@@ -6,6 +6,7 @@ import { generateMockRankings } from '../utils/mockRankings';
 import { getProgressToNextLevel } from '../utils/xpSystem';
 import { getUserLeague, getLeagueProgress, leagues } from '../utils/leagueSystem';
 import RankingDisplay from '../components/RankingDisplay';
+import { getContrastingTextColor, getContrastingSecondaryColor } from '../utils/colorUtils';
 import { ArrowLeft, TrendingUp, Users, Target, Trophy, Crown } from 'lucide-react';
 
 const RankingPage: React.FC = () => {
@@ -55,6 +56,10 @@ const RankingPage: React.FC = () => {
   const userLeague = getUserLeague(currentUser.xp);
   const levelProgress = getProgressToNextLevel(currentUser.xp);
   const leagueProgress = getLeagueProgress(currentUser.xp);
+  
+  // Get contrasting colors for the user's league
+  const primaryTextColor = getContrastingTextColor(userLeague.color);
+  const secondaryTextColor = getContrastingSecondaryColor(userLeague.color);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -75,9 +80,10 @@ const RankingPage: React.FC = () => {
 
       {/* User Stats Card */}
       <div 
-        className="rounded-lg p-6 text-white"
+        className="rounded-lg p-6"
         style={{ 
-          background: `linear-gradient(135deg, ${userLeague.color}dd, ${userLeague.color}aa)` 
+          background: `linear-gradient(135deg, ${userLeague.color}dd, ${userLeague.color}aa)`,
+          color: primaryTextColor
         }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -86,48 +92,63 @@ const RankingPage: React.FC = () => {
               <span className="text-2xl mr-2">{userLeague.icon}</span>
               <div>
                 <h2 className="text-2xl font-bold">{currentUser.name}</h2>
-                <p className="text-white/80">{userLeague.name}リーグ • Level {currentUser.level}</p>
+                <p style={{ color: secondaryTextColor }}>{userLeague.name}リーグ • Level {currentUser.level}</p>
               </div>
             </div>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold">#{currentUser.rank}</div>
-            <div className="text-white/80">/ {rankingData.totalUsers}人中</div>
-            <div className="text-sm text-white/70 mt-1">
+            <div style={{ color: secondaryTextColor }}>/ {rankingData.totalUsers}人中</div>
+            <div className="text-sm mt-1" style={{ color: secondaryTextColor }}>
               リーグ内 #{currentUser.leagueRank}位
             </div>
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="bg-white/20 rounded-lg p-3 text-center">
+          <div 
+            className="rounded-lg p-3 text-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+          >
             <div className="text-2xl font-bold">{currentUser.xp.toLocaleString()}</div>
-            <div className="text-sm text-white/80">総XP</div>
+            <div className="text-sm" style={{ color: secondaryTextColor }}>総XP</div>
           </div>
-          <div className="bg-white/20 rounded-lg p-3 text-center">
+          <div 
+            className="rounded-lg p-3 text-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+          >
             <div className="text-2xl font-bold">
               {leagueProgress.needed > 0 ? leagueProgress.current : 'MAX'}
             </div>
-            <div className="text-sm text-white/80">
+            <div className="text-sm" style={{ color: secondaryTextColor }}>
               {leagueProgress.needed > 0 ? '次のリーグまで' : '最高リーグ'}
             </div>
           </div>
-          <div className="bg-white/20 rounded-lg p-3 text-center">
+          <div 
+            className="rounded-lg p-3 text-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+          >
             <div className="text-2xl font-bold">{Math.round(leagueProgress.percentage)}%</div>
-            <div className="text-sm text-white/80">リーグ進捗</div>
+            <div className="text-sm" style={{ color: secondaryTextColor }}>リーグ進捗</div>
           </div>
         </div>
         
         {/* League Progress Bar */}
-        <div className="w-full bg-white/20 rounded-full h-3">
+        <div 
+          className="w-full rounded-full h-3"
+          style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
+        >
           <div 
-            className="bg-white rounded-full h-3 transition-all duration-500"
-            style={{ width: `${leagueProgress.percentage}%` }}
+            className="rounded-full h-3 transition-all duration-500"
+            style={{ 
+              width: `${leagueProgress.percentage}%`,
+              backgroundColor: primaryTextColor
+            }}
           ></div>
         </div>
         
         {leagueProgress.needed > 0 && (
-          <div className="text-center mt-2 text-sm text-white/80">
+          <div className="text-center mt-2 text-sm" style={{ color: secondaryTextColor }}>
             次のリーグ（{leagues[leagues.findIndex(l => l.name === userLeague.name) + 1]?.name}）まで {leagueProgress.needed - leagueProgress.current} XP
           </div>
         )}
