@@ -8,6 +8,9 @@ import MultiRivalPage from './pages/MultiRivalPage';
 import MultiCompetitionPage from './pages/MultiCompetitionPage';
 import MultiResultsPage from './pages/MultiResultsPage';
 import RankingPage from './pages/RankingPage';
+import MultiplayerSetupPage from './pages/MultiplayerSetupPage';
+import MultiplayerGamePage from './pages/MultiplayerGamePage';
+import MultiplayerResultsPage from './pages/MultiplayerResultsPage';
 
 export const router = createBrowserRouter([
   {
@@ -45,6 +48,18 @@ export const router = createBrowserRouter([
       {
         path: 'ranking',
         element: <RankingPage />,
+      },
+      {
+        path: 'multiplayer-setup',
+        element: <MultiplayerSetupPage />,
+      },
+      {
+        path: 'multiplayer-game',
+        element: <MultiplayerGamePage />,
+      },
+      {
+        path: 'multiplayer-results',
+        element: <MultiplayerResultsPage />,
       },
     ],
   },

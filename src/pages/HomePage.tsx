@@ -6,7 +6,7 @@ import { characterData } from '../data/characters';
 import CharacterCard from '../components/CharacterCard';
 import CharacterDetail from '../components/CharacterDetail';
 import UserProfile from '../components/UserProfile';
-import { ArrowRight, Users } from 'lucide-react';
+import { ArrowRight, Users, GamepadIcon } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +31,10 @@ const HomePage: React.FC = () => {
     navigate('/multi-rival');
   };
 
+  const handleMultiplayerChallenge = () => {
+    navigate('/multiplayer-setup');
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-center max-w-3xl mx-auto mb-12">
@@ -52,7 +56,7 @@ const HomePage: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Choose Your Challenge</h2>
             
             {/* Challenge Mode Buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
                 <h3 className="font-medium text-blue-800 mb-2">1 vs 1 Challenge</h3>
                 <p className="text-sm text-blue-600 mb-4">
@@ -83,6 +87,20 @@ const HomePage: React.FC = () => {
                 >
                   <Users className="mr-2 h-4 w-4" />
                   Multi Challenge
+                </button>
+              </div>
+              
+              <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                <h3 className="font-medium text-green-800 mb-2">Local Multiplayer</h3>
+                <p className="text-sm text-green-600 mb-4">
+                  Compete against another player on the same device
+                </p>
+                <button
+                  onClick={handleMultiplayerChallenge}
+                  className="w-full flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-colors"
+                >
+                  <GamepadIcon className="mr-2 h-4 w-4" />
+                  Local Play
                 </button>
               </div>
             </div>
