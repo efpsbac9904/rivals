@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMultiplayer } from '../context/MultiplayerContext';
 import Timer from '../components/Timer';
-import { Flag, CheckCircle, Users } from 'lucide-react';
+import { Flag, CheckCircle, Users, Bot } from 'lucide-react';
 
 const MultiplayerGamePage: React.FC = () => {
   const navigate = useNavigate();
@@ -15,22 +15,31 @@ const MultiplayerGamePage: React.FC = () => {
     isGameActive,
     setIsGameActive,
     updatePlayerScore,
+    updateBotScores,
     resetGame
   } = useMultiplayer();
 
   const [countdown, setCountdown] = useState(5);
   const [showCountdown, setShowCountdown] = useState(true);
-  const [playerInputs, setPlayerInputs] = useState<{[key: string]: number | ''}>({
-    player1: '',
-    player2: ''
-  });
+  const [playerInputs, setPlayerInputs] = useState<{[key: string]: number | ''}>({});
   const [finishedPlayers, setFinishedPlayers] = useState<Set<string>>(new Set());
+  const [botsFinished, setBotsFinished] = useState(false);
 
   useEffect(() => {
     if (players.length === 0 || !isGameActive) {
       navigate('/multiplayer-setup');
     }
   }, [players, isGameActive, navigate]);
+
+  useEffect(() => {
+    // Initialize player inputs for human players only
+    const humanPlayers = players.filter(p => !p.isBot);
+    const initialInputs: {[key: string]: number | ''} = {};
+    humanPlayers.forEach(player => {
+      initialInputs[player.id] = '';
+    });
+    setPlayerInputs(initialInputs);
+  }, [players]);
 
   useEffect(() => {
     if (showCountdown && countdown > 0) {
@@ -40,6 +49,13 @@ const MultiplayerGamePage: React.FC = () => {
       return () => clearTimeout(timer);
     } else if (showCountdown && countdown === 0) {
       setShowCountdown(false);
+      
+      // Start bot timer - bots will finish after some time
+      const botFinishTime = (problemCount * timePerProblem * 0.7) + Math.random() * (problemCount * timePerProblem * 0.4);
+      setTimeout(() => {
+        updateBotScores();
+        setBotsFinished(true);
+      }, botFinishTime * 1000);
     }
   }, [countdown, showCountdown]);
 
@@ -49,14 +65,25 @@ const MultiplayerGamePage: React.FC = () => {
       updatePlayerScore(playerId, correctAnswers);
       setFinishedPlayers(prev => new Set([...prev, playerId]));
       
-      // Check if all players finished
-      if (finishedPlayers.size + 1 >= players.length) {
+      // Check if all human players finished
+      const humanPlayers = players.filter(p => !p.isBot);
+      if (finishedPlayers.size + 1 >= humanPlayers.length && botsFinished) {
         setTimeout(() => {
           navigate('/multiplayer-results');
         }, 1000);
       }
     }
   };
+
+  useEffect(() => {
+    // Check if game should end when bots finish
+    const humanPlayers = players.filter(p => !p.isBot);
+    if (botsFinished && finishedPlayers.size >= humanPlayers.length) {
+      setTimeout(() => {
+        navigate('/multiplayer-results');
+      }, 1000);
+    }
+  }, [botsFinished, finishedPlayers.size, players, navigate]);
 
   const handleInputChange = (playerId: string, value: string) => {
     const numValue = parseInt(value);
@@ -73,6 +100,9 @@ const MultiplayerGamePage: React.FC = () => {
     navigate('/multiplayer-setup');
   };
 
+  const humanPlayers = players.filter(p => !p.isBot);
+  const botPlayers = players.filter(p => p.isBot);
+
   if (showCountdown) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
@@ -80,7 +110,7 @@ const MultiplayerGamePage: React.FC = () => {
           <div className="text-6xl font-bold mb-4 text-blue-600">
             {countdown}
           </div>
-          <p className="text-gray-600">Get ready to compete...</p>
+          <p className="text-gray-600">Get ready to compete against {botPlayers.length} AI opponents...</p>
         </div>
       </div>
     );
@@ -91,7 +121,7 @@ const MultiplayerGamePage: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-b">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Multiplayer Competition</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Local Competition</h1>
             <Timer 
               isRunning={isGameActive && !showCountdown} 
               elapsedTime={elapsedTime}
@@ -100,15 +130,45 @@ const MultiplayerGamePage: React.FC = () => {
           </div>
           
           <div className="text-sm text-gray-600">
-            {problemCount} problems • {timePerProblem}s per problem • {players.map(p => p.name).join(' vs ')}
+            {problemCount} problems • {timePerProblem}s per problem • 1 human vs {botPlayers.length} AI bots
           </div>
         </div>
         
         <div className="p-6">
+          {/* Bot Status */}
+          {botPlayers.length > 0 && (
+            <div className="bg-purple-50 rounded-lg p-4 mb-6 border border-purple-100">
+              <div className="flex items-center mb-2">
+                <Bot className="h-5 w-5 text-purple-600 mr-2" />
+                <h3 className="font-medium text-purple-800">AI Opponents Status</h3>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {botPlayers.map((bot) => (
+                  <div key={bot.id} className="flex items-center bg-white rounded-lg p-2">
+                    <img 
+                      src={bot.character?.avatar}
+                      alt={bot.name}
+                      className="w-6 h-6 rounded-full mr-2 object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-800">{bot.name}</div>
+                      <div className="text-xs text-gray-600">
+                        {bot.isFinished ? `Score: ${bot.score}` : 'Competing...'}
+                      </div>
+                    </div>
+                    {bot.isFinished && (
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-gray-50 rounded-lg p-6 mb-6 border border-gray-100">
             <h2 className="text-xl font-medium text-gray-800 mb-4">Solving Problems...</h2>
             <p className="text-gray-600 mb-6">
-              Both players should work on their problems. When finished, enter your correct answers below and click "Finish".
+              Work on your problems while the AI opponents compete automatically. When finished, enter your correct answers below and click "Finish".
             </p>
             
             <div className="flex justify-between mb-6">
@@ -121,8 +181,8 @@ const MultiplayerGamePage: React.FC = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {players.map((player) => (
+            <div className="grid grid-cols-1 gap-6">
+              {humanPlayers.map((player) => (
                 <div 
                   key={player.id}
                   className={`bg-white rounded-lg p-4 border-2 transition-all ${
@@ -133,9 +193,7 @@ const MultiplayerGamePage: React.FC = () => {
                 >
                   <div className="flex items-center mb-4">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="font-bold text-blue-600">
-                        {player.id === 'player1' ? '1' : '2'}
-                      </span>
+                      <Users className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-800">{player.name}</h3>
@@ -189,6 +247,14 @@ const MultiplayerGamePage: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {botsFinished && humanPlayers.some(p => !finishedPlayers.has(p.id)) && (
+              <div className="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded-lg">
+                <p className="text-yellow-800">
+                  All AI opponents have finished! Submit your results to see the final rankings.
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
@@ -204,10 +270,10 @@ const MultiplayerGamePage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-blue-700">
-                  <span className="font-medium">Finished Players:</span> {finishedPlayers.size}/{players.length}
+                  <span className="font-medium">Human Players:</span> {finishedPlayers.size}/{humanPlayers.length} finished
                 </p>
                 <p className="text-sm text-blue-700">
-                  <span className="font-medium">Time per Problem:</span> {timePerProblem}s
+                  <span className="font-medium">AI Bots:</span> {botsFinished ? 'All finished' : 'Competing...'}
                 </p>
               </div>
             </div>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMultiplayer } from '../context/MultiplayerContext';
 import { useAppContext } from '../context/AppContext';
 import { calculateXPGain, calculateLevel } from '../utils/xpSystem';
-import { ArrowLeft, Trophy, Medal, RefreshCw, Users, Clock, Target } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, RefreshCw, Users, Clock, Target, Bot, Crown } from 'lucide-react';
 
 const MultiplayerResultsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -22,10 +22,10 @@ const MultiplayerResultsPage: React.FC = () => {
       return;
     }
 
-    // Update user profile based on best player performance (assuming player1 is the main user)
-    const mainPlayer = players.find(p => p.id === 'player1');
+    // Update user profile based on human player performance
+    const mainPlayer = players.find(p => !p.isBot && p.isFinished);
     if (mainPlayer && mainPlayer.isFinished) {
-      const playerWon = players.every(p => p.id === 'player1' || mainPlayer.score >= p.score);
+      const playerWon = players.every(p => p.id === mainPlayer.id || mainPlayer.score >= p.score);
       
       // Calculate XP gains for multiplayer competition
       const gains = calculateXPGain(
@@ -55,6 +55,8 @@ const MultiplayerResultsPage: React.FC = () => {
   // Sort players by score (descending)
   const sortedPlayers = [...players].sort((a, b) => b.score - a.score);
   const winner = sortedPlayers[0];
+  const humanPlayer = players.find(p => !p.isBot);
+  const humanRank = sortedPlayers.findIndex(p => !p.isBot) + 1;
 
   const handleRematch = () => {
     resetGame();
@@ -69,9 +71,11 @@ const MultiplayerResultsPage: React.FC = () => {
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Trophy className="h-8 w-8 text-yellow-500" />;
+        return <Crown className="h-8 w-8 text-yellow-500" />;
       case 2:
-        return <Medal className="h-8 w-8 text-gray-400" />;
+        return <Trophy className="h-8 w-8 text-gray-400" />;
+      case 3:
+        return <Medal className="h-8 w-8 text-amber-600" />;
       default:
         return <div className="h-8 w-8 flex items-center justify-center text-gray-500 font-bold text-xl">#{rank}</div>;
     }
@@ -83,9 +87,28 @@ const MultiplayerResultsPage: React.FC = () => {
         return 'from-yellow-400 to-yellow-600';
       case 2:
         return 'from-gray-300 to-gray-500';
+      case 3:
+        return 'from-amber-400 to-amber-600';
       default:
         return 'from-gray-100 to-gray-300';
     }
+  };
+
+  const getPlayerIcon = (player: any) => {
+    if (player.isBot && player.character) {
+      return (
+        <img 
+          src={player.character.avatar}
+          alt={player.name}
+          className="w-12 h-12 rounded-full object-cover"
+        />
+      );
+    }
+    return (
+      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+        <Users className="h-6 w-6 text-blue-600" />
+      </div>
+    );
   };
 
   return (
@@ -99,16 +122,27 @@ const MultiplayerResultsPage: React.FC = () => {
       </button>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className={`p-8 text-center bg-gradient-to-r ${getRankColor(1)}`}>
+        <div className={`p-8 text-center bg-gradient-to-r ${
+          winner.isBot ? 'from-purple-500 to-purple-700' : getRankColor(1)
+        }`}>
           <div className="flex justify-center mb-4">
-            <Trophy className="h-16 w-16 text-white" />
+            {winner.isBot ? (
+              <Bot className="h-16 w-16 text-white" />
+            ) : (
+              <Crown className="h-16 w-16 text-white" />
+            )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            {winner.name} Wins!
+            {winner.isBot ? `${winner.name} (AI) Wins!` : `${winner.name} Wins!`}
           </h1>
           <p className="text-xl text-white">
             Final Score: {winner.score} points
           </p>
+          {humanPlayer && (
+            <p className="text-lg text-white mt-2 opacity-90">
+              You finished #{humanRank} out of {players.length} participants
+            </p>
+          )}
         </div>
 
         <div className="p-6">
@@ -119,9 +153,11 @@ const MultiplayerResultsPage: React.FC = () => {
               <div
                 key={player.id}
                 className={`flex items-center p-6 rounded-lg border-2 transition-all ${
-                  index === 0 
-                    ? 'bg-yellow-50 border-yellow-200 shadow-md' 
-                    : 'bg-gray-50 border-gray-200'
+                  !player.isBot
+                    ? 'bg-blue-50 border-blue-200 shadow-md'
+                    : index === 0 
+                      ? 'bg-yellow-50 border-yellow-200 shadow-md' 
+                      : 'bg-gray-50 border-gray-200'
                 }`}
               >
                 <div className="flex items-center mr-6">
@@ -129,21 +165,21 @@ const MultiplayerResultsPage: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center flex-1">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                    <span className="font-bold text-blue-600 text-lg">
-                      {player.id === 'player1' ? '1' : '2'}
-                    </span>
+                  <div className="mr-4">
+                    {getPlayerIcon(player)}
                   </div>
                   
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-800">{player.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-800">
+                      {player.name} {player.isBot ? '(AI)' : '(You)'}
+                    </h3>
                     <div className="flex items-center space-x-6 text-sm text-gray-600 mt-2">
                       <div className="flex items-center">
                         <Target className="w-4 h-4 mr-1" />
                         <span>Score: {player.score}</span>
                       </div>
                       <div className="flex items-center">
-                        <Trophy className="w-4 h-4 mr-1" />
+                        <Medal className="w-4 h-4 mr-1" />
                         <span>Correct: {player.correctAnswers}/{problemCount}</span>
                       </div>
                       <div className="flex items-center">
@@ -160,7 +196,9 @@ const MultiplayerResultsPage: React.FC = () => {
                 </div>
                 
                 <div className={`px-4 py-2 rounded-full text-lg font-bold ${
-                  index === 0 
+                  !player.isBot
+                    ? 'bg-blue-100 text-blue-800'
+                    : index === 0 
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
@@ -193,9 +231,11 @@ const MultiplayerResultsPage: React.FC = () => {
             
             <div className="mt-4 p-4 bg-white rounded-lg">
               <p className="text-gray-700 text-center">
-                {winner.score > 80 
-                  ? `Excellent performance by ${winner.name}! Both players showed great skill.`
-                  : `Good competition! ${winner.name} takes the victory this time.`
+                {humanRank === 1
+                  ? `Congratulations! You defeated all ${players.filter(p => p.isBot).length} AI opponents!`
+                  : humanRank <= 3
+                    ? `Great performance! You finished in the top 3 against tough AI competition.`
+                    : `Good effort! Keep practicing to improve your ranking against the AI opponents.`
                 }
               </p>
             </div>
